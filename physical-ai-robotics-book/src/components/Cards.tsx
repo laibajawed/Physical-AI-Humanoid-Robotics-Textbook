@@ -16,7 +16,7 @@ export default function Card({
   icon = '📚',
   link,
   className,
-}: CardProps): JSX.Element {
+}: CardProps): React.ReactElement {
   const cardContent = (
     <div className={clsx('card', className)}>
       <div className="card-content">

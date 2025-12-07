@@ -19,7 +19,7 @@ export default function LearningPath({
   title,
   items,
   className,
-}: LearningPathProps): JSX.Element {
+}: LearningPathProps): React.ReactElement {
   return (
     <div className={clsx('learning-path', className)}>
       <h2 className="learning-path-title">{title}</h2>

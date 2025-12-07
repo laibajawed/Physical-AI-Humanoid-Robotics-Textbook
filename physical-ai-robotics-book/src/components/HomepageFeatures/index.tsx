@@ -11,37 +11,36 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
+    title: 'Human-Centered Design',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Physical AI and humanoid robotics prioritize collaboration with people,
+        ensuring machines adapt to human needs and environments.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: 'Future-Ready Skills',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Learn the essential skills to thrive in a world where humans, AI agents,
+        and robots work side by side.
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: 'Powered by Intelligence',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Combining advanced AI with robotics, humanoid systems can perceive,
+        reason, and act—bridging digital intelligence with physical capability.
       </>
     ),
   },
 ];
-
 function Feature({title, Svg, description}: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
