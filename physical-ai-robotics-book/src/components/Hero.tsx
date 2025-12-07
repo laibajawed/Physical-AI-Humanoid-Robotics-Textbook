@@ -18,7 +18,7 @@ export default function Hero({
   ctaText = 'Get Started',
   ctaLink = '/docs/introduction',
   className,
-}: HeroProps): JSX.Element {
+}: HeroProps): React.ReactElement {
   return (
     <section className={clsx('hero', className)}>
       <div className="container">

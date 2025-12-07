@@ -16,7 +16,7 @@ export default function DownloadCard({
   href,
   icon = '📥',
   className,
-}: DownloadCardProps): JSX.Element {
+}: DownloadCardProps): React.ReactElement {
   return (
     <div className={clsx('download-card', className)}>
       <div className="download-card-content">

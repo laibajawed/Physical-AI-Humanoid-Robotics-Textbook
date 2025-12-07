@@ -1,7 +1,7 @@
 import React from 'react';
-import CodeBlock from '@theme/CodeBlock';
+import ThemeCodeBlock from '@theme/CodeBlock';
 
-interface CodeBlockProps {
+interface CustomCodeBlockProps {
   children: React.ReactNode;
   className?: string;
   title?: string;
@@ -13,10 +13,10 @@ export default function CustomCodeBlock({
   className,
   title,
   showLineNumbers = false,
-}: CodeBlockProps): JSX.Element {
+}: CustomCodeBlockProps): React.ReactElement {
   return (
     <div className="custom-code-block">
-      <CodeBlock
+      <ThemeCodeBlock
         children={children}
         className={className}
         title={title}

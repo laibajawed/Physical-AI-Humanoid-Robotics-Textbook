@@ -1,8 +1,8 @@
 import React from 'react';
 import {useThemeConfig} from '@docusaurus/theme-common';
-import {NavbarMobileSidebarToggle} from '@theme/Navbar/MobileSidebar/Toggle';
+import NavbarMobileSidebarToggle from '@theme/Navbar/MobileSidebar/Toggle';
 
-export default function MobileMenu(props) {
+export default function MobileMenu(props: React.HTMLAttributes<HTMLDivElement>) {
   const {
     navbar: {hideOnScroll},
   } = useThemeConfig();

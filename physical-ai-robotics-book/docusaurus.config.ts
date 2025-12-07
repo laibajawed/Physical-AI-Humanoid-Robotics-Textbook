@@ -5,8 +5,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'Physical AI Robotics Book',
+  tagline: 'Skills for the Future of Work in Robotics and AI',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -98,7 +98,7 @@ const config: Config = {
           position: 'left',
           label: 'Textbook',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
+      
         {
           href: 'https://github.com/facebook/docusaurus',
           label: 'GitHub',
@@ -114,7 +114,7 @@ const config: Config = {
           items: [
             {
               label: 'Introduction',
-              to: '/docs/introduction/index',
+              to: '/docs/introduction/',
             },
             {
               label: 'Module 1: ROS 2 Fundamentals',
@@ -130,31 +130,13 @@ const config: Config = {
           title: 'Resources',
           items: [
             {
-              label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
-            },
-            {
-              label: 'Docusaurus Docs',
-              href: 'https://docusaurus.io/docs',
-            },
-            {
               label: 'Robotics Resources',
               href: 'https://www.ros.org/',
             },
           ],
         },
         {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
-            },
-          ],
+          
         },
       ],
       copyright: `Copyright © ${new Date().getFullYear()} Physical AI & Humanoid Robotics Textbook. Built with Docusaurus.`,

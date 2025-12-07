@@ -4,7 +4,7 @@ import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import {useLocation} from '@docusaurus/router';
 
-export default function NavbarWrapper(props) {
+export default function NavbarWrapper(props: React.PropsWithChildren<{}>) {
   const location = useLocation();
   const isDocsPage = location.pathname.includes('/docs');
 

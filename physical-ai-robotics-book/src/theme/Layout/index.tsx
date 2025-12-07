@@ -1,12 +1,12 @@
 import React from 'react';
 import OriginalLayout from '@theme-original/Layout';
-import ChatKitComponent from '@site/src/components/ChatKitComponent';
 
-export default function Layout(props) {
+
+export default function Layout(props: React.PropsWithChildren<{}>) {
   return (
     <>
       <OriginalLayout {...props} />
-      <ChatKitComponent />
+
     </>
   );
 }

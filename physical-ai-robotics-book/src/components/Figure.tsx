@@ -13,7 +13,7 @@ export default function Figure({
   alt,
   caption,
   className,
-}: FigureProps): JSX.Element {
+}: FigureProps): React.ReactElement {
   return (
     <figure className={clsx('figure', className)}>
       <img src={src} alt={alt} />

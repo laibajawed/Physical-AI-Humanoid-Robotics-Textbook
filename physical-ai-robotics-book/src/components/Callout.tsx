@@ -11,7 +11,7 @@ export default function Callout({
   children,
   type = 'info',
   title,
-}: CalloutProps): JSX.Element {
+}: CalloutProps): React.ReactElement {
   const iconMap = {
     info: 'ℹ️',
     warning: '⚠️',
