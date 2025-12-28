@@ -7,7 +7,13 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'Physical AI Robotics Book',
   tagline: 'Skills for the Future of Work in Robotics and AI',
-  favicon: 'img/favicon.ico',
+  favicon: '/images.png',
+
+  // Custom fields for runtime configuration
+  // Access via useDocusaurusContext() -> siteConfig.customFields.backendUrl
+  customFields: {
+    backendUrl: process.env.BACKEND_URL || 'http://localhost:8000',
+  },
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -70,15 +76,8 @@ const config: Config = {
     ],
   ],
 
-  headTags: [
-    {
-      tagName: 'script',
-      attributes: {
-        src: 'https://cdn.platform.openai.com/deployments/chatkit/chatkit.js',
-        async: 'true',
-      },
-    },
-  ],
+  // Using Alibaba @chatui/core for chat interface
+  // See specs/006-chatkit-frontend/spec.md for integration details
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',

@@ -212,7 +212,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.11 + FastAPI, OpenAI Agents SDK, Qdrant, python-dotenv, SQLAlchemy, asyncpg (002-rag-chatbot-backend)
 - Qdrant Cloud (vector database), optional Neon Serverless Postgres (metadata) (002-rag-chatbot-backend)
-- TypeScript 5.0+ with React 18+ + Chatkit, React, Tailwind CSS v4, @heroicons/react, react-markdown (003-chatkit-frontend)
+- TypeScript 5.0+ with React 18+ + Alibaba ChatUI (@chatui/core), Tailwind CSS v4, @heroicons/react, react-markdown (003-chatkit-frontend)
 - Browser localStorage for conversation history persistence (003-chatkit-frontend)
 
 ## Recent Changes

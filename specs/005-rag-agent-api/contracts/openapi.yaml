@@ -1,0 +1,532 @@
+openapi: 3.1.0
+info:
+  title: RAG Agent API
+  description: |
+    FastAPI backend for Physical AI & Robotics textbook Q&A.
+    Uses OpenAI Agents SDK with Gemini for response generation
+    and Qdrant for semantic retrieval.
+  version: 0.1.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.example.com
+    description: Production
+
+tags:
+  - name: chat
+    description: Conversational Q&A endpoints
+  - name: health
+    description: Health and status endpoints
+  - name: history
+    description: Conversation history endpoints
+
+paths:
+  /chat:
+    post:
+      operationId: chat
+      tags:
+        - chat
+      summary: Ask a question about the book
+      description: |
+        Submit a natural language question about the Physical AI & Robotics textbook.
+        The agent retrieves relevant content from Qdrant and generates a sourced answer.
+
+        **Modes:**
+        - Default: Searches full book content via Qdrant
+        - Selected-text: If `selected_text` is provided, answers are grounded only in that text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              basic_question:
+                summary: Basic question
+                value:
+                  query: "What is inverse kinematics?"
+              with_session:
+                summary: With session ID
+                value:
+                  query: "How does robot arm control work?"
+                  session_id: "550e8400-e29b-41d4-a716-446655440000"
+              selected_text_mode:
+                summary: Selected text mode
+                value:
+                  query: "Explain this in simpler terms"
+                  selected_text: "Inverse kinematics (IK) is the mathematical process of calculating the joint angles needed to position an end effector..."
+      responses:
+        '200':
+          description: Successful response with answer and sources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                empty_query:
+                  summary: Empty query
+                  value:
+                    error_code: "EMPTY_QUERY"
+                    message: "Query cannot be empty"
+                    request_id: "550e8400-e29b-41d4-a716-446655440000"
+        '429':
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service unavailable (Qdrant or Gemini down)
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /chat/stream:
+    post:
+      operationId: chat_stream
+      tags:
+        - chat
+      summary: Stream answer generation
+      description: |
+        Same as `/chat` but returns Server-Sent Events (SSE) for streaming response.
+
+        **Event types:**
+        - `delta`: Partial answer text
+        - `sources`: Citation data (sent at end)
+        - `done`: Stream complete
+        - `error`: Error occurred
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: SSE stream of response chunks
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              examples:
+                stream_example:
+                  value: |
+                    data: {"delta": "Inverse kinematics is "}
+
+                    data: {"delta": "the process of..."}
+
+                    data: {"sources": [...], "metadata": {...}}
+
+                    data: {"done": true}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /health:
+    get:
+      operationId: health
+      tags:
+        - health
+      summary: Check service health
+      description: |
+        Returns health status including connectivity to:
+        - Qdrant Cloud (vector database)
+        - Neon Postgres (session storage)
+        - Gemini API (optional check)
+      responses:
+        '200':
+          description: Service is healthy or degraded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  summary: All services healthy
+                  value:
+                    status: "healthy"
+                    timestamp: "2025-12-17T10:30:00Z"
+                    services:
+                      qdrant:
+                        name: "qdrant"
+                        status: "healthy"
+                        latency_ms: 45.2
+                      postgres:
+                        name: "postgres"
+                        status: "healthy"
+                        latency_ms: 12.5
+                    version: "0.1.0"
+                degraded:
+                  summary: Some services degraded
+                  value:
+                    status: "degraded"
+                    timestamp: "2025-12-17T10:30:00Z"
+                    services:
+                      qdrant:
+                        name: "qdrant"
+                        status: "unavailable"
+                        error: "Connection timeout"
+                      postgres:
+                        name: "postgres"
+                        status: "healthy"
+                        latency_ms: 12.5
+                    version: "0.1.0"
+
+  /history/{session_id}:
+    get:
+      operationId: get_history
+      tags:
+        - history
+      summary: Get conversation history
+      description: Retrieve conversation history for a session.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Session UUID
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+          description: Maximum entries to return
+      responses:
+        '200':
+          description: Conversation history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationHistoryResponse'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 32000
+          description: Natural language question about the book
+          example: "What is inverse kinematics?"
+        selected_text:
+          type: string
+          maxLength: 64000
+          description: If provided, answer is grounded only in this text
+        session_id:
+          type: string
+          format: uuid
+          description: Session ID for conversation history
+        filters:
+          $ref: '#/components/schemas/MetadataFilter'
+
+    MetadataFilter:
+      type: object
+      properties:
+        source_url_prefix:
+          type: string
+          description: Filter results to URLs starting with this prefix
+          example: "/docs/module1"
+        section:
+          type: string
+          description: Filter results to specific section name
+          example: "Inverse Kinematics"
+
+    ChatResponse:
+      type: object
+      required:
+        - metadata
+        - session_id
+      properties:
+        answer:
+          type: string
+          nullable: true
+          description: AI-generated answer. Null if Gemini unavailable.
+        fallback_message:
+          type: string
+          nullable: true
+          description: Message when answer is null (graceful degradation)
+        sources:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/SourceCitation'
+              - $ref: '#/components/schemas/SelectedTextCitation'
+          description: Citations for the answer
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+        session_id:
+          type: string
+          format: uuid
+          description: Session ID (provided or newly generated)
+
+    SourceCitation:
+      type: object
+      required:
+        - source_url
+        - title
+        - section
+        - chunk_position
+        - similarity_score
+        - snippet
+      properties:
+        source_url:
+          type: string
+          format: uri
+          description: Full URL to the book section
+        title:
+          type: string
+          description: Document/chapter title
+        section:
+          type: string
+          description: Section or heading name
+        chunk_position:
+          type: integer
+          minimum: 0
+          description: Position of chunk within document
+        similarity_score:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Cosine similarity score
+        snippet:
+          type: string
+          maxLength: 200
+          description: First 200 chars of chunk_text for preview
+
+    SelectedTextCitation:
+      type: object
+      required:
+        - source_type
+        - selection_length
+        - snippet
+        - relevance_note
+      properties:
+        source_type:
+          type: string
+          enum: ["selected_text"]
+          description: Always 'selected_text' for this type
+        selection_length:
+          type: integer
+          minimum: 0
+          description: Character count of provided selection
+        snippet:
+          type: string
+          maxLength: 200
+          description: First 200 chars of selection for preview
+        relevance_note:
+          type: string
+          description: How the selection relates to the answer
+
+    ResponseMetadata:
+      type: object
+      required:
+        - query_time_ms
+        - retrieval_count
+        - mode
+        - request_id
+      properties:
+        query_time_ms:
+          type: number
+          minimum: 0
+          description: Total processing time in milliseconds
+        retrieval_count:
+          type: integer
+          minimum: 0
+          description: Number of chunks retrieved from Qdrant
+        mode:
+          type: string
+          enum: ["full", "selected_text", "retrieval_only", "no_results"]
+          description: Response mode
+        low_confidence:
+          type: boolean
+          default: false
+          description: True if best results had scores 0.3-0.5
+        request_id:
+          type: string
+          format: uuid
+          description: UUID v4 for request tracing
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - version
+      properties:
+        status:
+          type: string
+          enum: ["healthy", "degraded", "unavailable"]
+          description: Overall service status
+        timestamp:
+          type: string
+          format: date-time
+          description: Health check timestamp
+        services:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ServiceStatus'
+          description: Status of dependent services
+        version:
+          type: string
+          description: API version
+
+    ServiceStatus:
+      type: object
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          description: Service name
+        status:
+          type: string
+          enum: ["healthy", "degraded", "unavailable"]
+          description: Service status
+        latency_ms:
+          type: number
+          nullable: true
+          description: Response latency in milliseconds
+        error:
+          type: string
+          nullable: true
+          description: Error message if unhealthy
+
+    ConversationHistoryResponse:
+      type: object
+      required:
+        - session_id
+        - entries
+        - total_entries
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryEntry'
+        total_entries:
+          type: integer
+          minimum: 0
+
+    HistoryEntry:
+      type: object
+      required:
+        - timestamp
+        - query
+        - response
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        query:
+          type: string
+        response:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceCitation'
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_code
+        - message
+        - request_id
+      properties:
+        error_code:
+          type: string
+          description: Machine-readable error code
+          enum:
+            - EMPTY_QUERY
+            - QUERY_TOO_LONG
+            - SELECTION_TOO_LONG
+            - INVALID_SESSION_ID
+            - SESSION_NOT_FOUND
+            - SERVICE_UNAVAILABLE
+            - RATE_LIMITED
+            - INTERNAL_ERROR
+            - QDRANT_UNAVAILABLE
+            - GEMINI_UNAVAILABLE
+        message:
+          type: string
+          description: Human-readable error description
+        request_id:
+          type: string
+          format: uuid
+          description: UUID v4 for request tracing
+        details:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Additional error context
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds to wait before retrying
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ServiceUnavailable:
+      description: Service unavailable
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

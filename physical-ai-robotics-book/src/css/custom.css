@@ -43,6 +43,11 @@
     --color-success: #22c55e;
     --color-warning: #f59e0b;
     --color-error: #ef4444;
+
+    /* Futuristic homepage colors */
+    --ifm-background-color: #0F0F1A;
+    --gradient-purple-pink-start: #A78BFA;
+    --gradient-purple-pink-end: #F472B6;
   }
 
   [data-theme='dark'] {
@@ -79,6 +84,159 @@
     --color-success: #34d399;
     --color-warning: #fbbf24;
     --color-error: #f87171;
+
+    /* Futuristic homepage dark mode colors */
+    --ifm-background-color: #0F0F1A;
+    --gradient-purple-pink-start: #A78BFA;
+    --gradient-purple-pink-end: #F472B6;
+  }
+}
+
+/* Gradient definitions for homepage */
+.gradient-text {
+  background: linear-gradient(90deg, var(--gradient-purple-pink-start) 0%, var(--gradient-purple-pink-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-bg {
+  background: linear-gradient(90deg, var(--gradient-purple-pink-start) 0%, var(--gradient-purple-pink-end) 100%);
+}
+
+.gradient-border {
+  border: 1px solid transparent;
+  background: linear-gradient(90deg, var(--gradient-purple-pink-start) 0%, var(--gradient-purple-pink-end) 100%);
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+}
+
+/* Responsive layout utilities for homepage */
+.hero-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.hero-text-section {
+  flex: 0 0 55%;
+}
+
+.hero-image-section {
+  flex: 0 0 45%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Mobile stacking */
+@media (max-width: 768px) {
+  .hero-section {
+    flex-direction: column;
+  }
+
+  .hero-text-section,
+  .hero-image-section {
+    flex: none;
+    width: 100%;
+  }
+
+  .hero-image-section {
+    margin-top: 2rem;
+  }
+}
+
+/* Module grid layout */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 4rem;
+}
+
+/* Card hover effects */
+.module-card {
+  background-color: #1A1A2E;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.module-card:hover {
+  transform: translateY(-5px);
+  border: 1px solid var(--gradient-purple-pink-start);
+}
+
+/* CTA Button styles */
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  background: linear-gradient(90deg, var(--gradient-purple-pink-start) 0%, var(--gradient-purple-pink-end) 100%);
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.cta-button:hover {
+  box-shadow: 0 0 20px var(--gradient-purple-pink-start);
+  transform: scale(1.05);
+}
+
+/* Accessibility utilities */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.focusable {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focusable:focus {
+  outline: 2px solid var(--gradient-purple-pink-start);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .module-card {
+    border: 2px solid var(--ifm-color-emphasis-300);
+  }
+
+  .module-card:hover {
+    border: 2px solid var(--gradient-purple-pink-start);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .module-card,
+  .cta-button {
+    transition: none;
+  }
+
+  .module-card:hover {
+    transform: none;
+  }
+
+  .cta-button:hover {
+    transform: none;
   }
 }
 
@@ -105,6 +263,19 @@
   --ifm-color-primary-lighter: #e9d5ff;  /* very light lavender */
   --ifm-color-primary-lightest: #f3e8ff; /* softest pastel purple */
   --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1); /* subtle highlight for dark mode */
+}
+
+/* Color mode toggle styling for futuristic theme */
+:root {
+  --ifm-color-mode-toggle-background-color: transparent;
+  --ifm-color-mode-toggle-border-color: var(--gradient-purple-pink-start);
+  --ifm-color-mode-toggle-icon-color: var(--gradient-purple-pink-start);
+}
+
+[data-theme='dark'] {
+  --ifm-color-mode-toggle-background-color: transparent;
+  --ifm-color-mode-toggle-border-color: var(--gradient-purple-pink-start);
+  --ifm-color-mode-toggle-icon-color: var(--gradient-purple-pink-start);
 }
 
 /* Responsive design improvements */
