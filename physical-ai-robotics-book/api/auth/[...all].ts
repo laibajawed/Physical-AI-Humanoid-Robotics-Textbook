@@ -7,7 +7,7 @@
 
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
-import { auth } from "../../src/lib/auth";
+import { auth } from "../../src/lib/auth.mts";
 
 // Create Hono app
 const app = new Hono().basePath("/api/auth");
