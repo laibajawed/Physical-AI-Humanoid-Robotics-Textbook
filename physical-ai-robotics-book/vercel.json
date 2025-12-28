@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/auth/(.*)",
+      "destination": "/api/auth/[...all]"
+    }
+  ],
+  "functions": {
+    "api/auth/[...all].ts": {
+      "maxDuration": 30
+    }
+  }
+}

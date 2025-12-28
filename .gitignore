@@ -100,3 +100,5 @@ uvicorn_access.log
 venv/
 env/
 ENV
+.vercel
+.env*.local
