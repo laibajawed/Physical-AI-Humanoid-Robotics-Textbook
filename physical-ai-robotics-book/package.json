@@ -20,8 +20,10 @@
     "@docusaurus/preset-classic": "3.9.2",
     "@hono/node-server": "^1.19.7",
     "@mdx-js/react": "^3.0.0",
+    "@neondatabase/serverless": "^1.0.2",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/pg": "^8.16.0",
+    "@types/ws": "^8.18.1",
     "better-auth": "^1.4.9",
     "clsx": "^2.0.0",
     "hono": "^4.11.3",
@@ -29,7 +31,8 @@
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.9.2",
