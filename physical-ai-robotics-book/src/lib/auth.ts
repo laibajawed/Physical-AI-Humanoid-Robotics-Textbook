@@ -23,11 +23,23 @@ const getBaseUrl = (): string => {
   return process.env.BETTER_AUTH_URL || "http://localhost:3000";
 };
 
+// Get secret from environment
+const getSecret = (): string => {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret) {
+    throw new Error("BETTER_AUTH_SECRET environment variable is required");
+  }
+  return secret;
+};
+
 export const auth = betterAuth({
   // Database configuration - Neon Serverless (compatible with Vercel)
   database: new Pool({
     connectionString: getDatabaseUrl(),
   }),
+
+  // Secret for signing sessions and JWTs
+  secret: getSecret(),
 
   // Base URL configuration
   baseURL: getBaseUrl(),
