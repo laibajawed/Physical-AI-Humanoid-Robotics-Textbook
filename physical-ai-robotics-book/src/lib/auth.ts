@@ -7,11 +7,7 @@
 
 import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
-
-// Configure Neon for WebSocket support (required for serverless)
-neonConfig.webSocketConstructor = ws;
+import { Pool } from "@neondatabase/serverless";
 
 // Get database URL from environment
 const getDatabaseUrl = (): string => {
