@@ -1,0 +1,359 @@
+openapi: 3.0.3
+info:
+  title: Protected RAG Agent API
+  description: |
+    FastAPI backend endpoints with JWT authentication.
+    Existing endpoints modified to require authentication via Authorization header.
+  version: 0.2.0
+
+servers:
+  - url: https://your-railway-deployment.railway.app
+    description: Production (Railway)
+  - url: http://localhost:8000
+    description: Development
+
+security:
+  - bearerAuth: []
+
+paths:
+  /chat:
+    post:
+      operationId: chatAuthenticated
+      summary: Ask a question (authenticated)
+      description: |
+        Send a question about the Physical AI & Robotics textbook.
+        Requires valid JWT in Authorization header.
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+              examples:
+                missingToken:
+                  summary: No Authorization header
+                  value:
+                    error_code: "UNAUTHORIZED"
+                    message: "Authentication required"
+                    request_id: "550e8400-e29b-41d4-a716-446655440000"
+                expiredToken:
+                  summary: JWT expired
+                  value:
+                    error_code: "TOKEN_EXPIRED"
+                    message: "Token has expired. Please sign in again."
+                    request_id: "550e8400-e29b-41d4-a716-446655440000"
+                invalidToken:
+                  summary: Invalid JWT signature
+                  value:
+                    error_code: "INVALID_TOKEN"
+                    message: "Invalid token"
+                    request_id: "550e8400-e29b-41d4-a716-446655440000"
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /chat/stream:
+    post:
+      operationId: chatStreamAuthenticated
+      summary: Stream chat response (authenticated)
+      description: |
+        Stream answer via Server-Sent Events.
+        Requires valid JWT in Authorization header.
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  Server-Sent Events stream with event types:
+                  - delta: Partial answer text
+                  - sources: Citation data
+                  - done: Stream complete
+                  - error: Error occurred
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+
+  /history/{session_id}:
+    get:
+      operationId: getHistoryAuthenticated
+      summary: Get conversation history (authenticated)
+      description: |
+        Retrieve chat history for a session.
+        Requires valid JWT in Authorization header.
+      tags:
+        - History
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Conversation history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryResponse'
+        '401':
+          description: Authentication required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check (public)
+      description: |
+        Check service health. This endpoint remains PUBLIC.
+        No authentication required.
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: Service health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: User's question
+          minLength: 1
+          maxLength: 32000
+        selected_text:
+          type: string
+          description: Selected text for context-specific answers
+          maxLength: 64000
+          nullable: true
+        session_id:
+          type: string
+          format: uuid
+          description: Chat session ID
+          nullable: true
+        filters:
+          type: object
+          nullable: true
+          properties:
+            source_url_prefix:
+              type: string
+            section:
+              type: string
+
+    ChatResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+          nullable: true
+        fallback_message:
+          type: string
+          nullable: true
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceCitation'
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+        session_id:
+          type: string
+          format: uuid
+
+    SourceCitation:
+      type: object
+      properties:
+        title:
+          type: string
+        source_url:
+          type: string
+          format: uri
+        relevant_text:
+          type: string
+        relevance_score:
+          type: number
+
+    ResponseMetadata:
+      type: object
+      properties:
+        query_time_ms:
+          type: number
+        retrieval_count:
+          type: integer
+        mode:
+          type: string
+          enum: [full, selected_text, retrieval_only, no_results]
+        low_confidence:
+          type: boolean
+        request_id:
+          type: string
+          format: uuid
+
+    HistoryResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryEntry'
+        total_entries:
+          type: integer
+
+    HistoryEntry:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        query:
+          type: string
+        response:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceCitation'
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unavailable]
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+        version:
+          type: string
+
+    AuthErrorResponse:
+      type: object
+      required:
+        - error_code
+        - message
+        - request_id
+      properties:
+        error_code:
+          type: string
+          enum:
+            - UNAUTHORIZED
+            - TOKEN_EXPIRED
+            - INVALID_TOKEN
+          description: |
+            Authentication error codes:
+            - UNAUTHORIZED: No token provided
+            - TOKEN_EXPIRED: JWT has expired
+            - INVALID_TOKEN: JWT signature invalid or malformed
+        message:
+          type: string
+          description: Human-readable error message
+        request_id:
+          type: string
+          format: uuid
+          description: Request ID for tracing
+        details:
+          type: object
+          nullable: true
+          description: Additional error details
+
+    ErrorResponse:
+      type: object
+      properties:
+        error_code:
+          type: string
+        message:
+          type: string
+        request_id:
+          type: string
+          format: uuid
+        details:
+          type: object
+          nullable: true
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from Better Auth session.
+        Frontend reads JWT from Better Auth cookie and sends as Authorization header.
+
+        Example:
+        ```
+        Authorization: Bearer eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...
+        ```
+
+        JWT claims validated:
+        - sub: User ID
+        - email: User's email
+        - exp: Expiration time
+        - iat: Issued at time

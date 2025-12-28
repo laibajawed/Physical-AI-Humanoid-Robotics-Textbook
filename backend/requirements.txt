@@ -10,3 +10,5 @@ openai-agents>=0.0.13
 sqlalchemy[asyncio]>=2.0.0
 asyncpg>=0.30.0
 pydantic>=2.0.0
+PyJWT>=2.8.0
+cryptography>=41.0.0

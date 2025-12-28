@@ -12,6 +12,7 @@
 
 import { CONFIG } from './config';
 import { ChatApiError, ErrorCodes, createNetworkError } from './errors';
+import { getAuthToken } from '../lib/auth-client';
 import type {
   ChatRequest,
   ChatResponse,
@@ -52,12 +53,22 @@ export async function sendChatMessage(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT_MS);
 
+  // Get auth token for authenticated requests
+  const token = await getAuthToken();
+
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Add authorization header if authenticated
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${backendUrl}/chat`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(request),
       signal: controller.signal,
     });
@@ -150,11 +161,21 @@ export function streamChatMessage(
   // Start the fetch in the background
   (async () => {
     try {
+      // Get auth token for authenticated requests
+      const token = await getAuthToken();
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authorization header if authenticated
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${backendUrl}/chat/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(request),
         signal: controller.signal,
       });
@@ -275,11 +296,22 @@ export async function getHistory(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT_MS);
 
+  // Get auth token for authenticated requests
+  const token = await getAuthToken();
+
+  const headers: Record<string, string> = {};
+  
+  // Add authorization header if authenticated
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   try {
     const response = await fetch(
       `${backendUrl}/history/${sessionId}?limit=${CONFIG.HISTORY_LIMIT}`,
       {
         method: 'GET',
+        headers,
         signal: controller.signal,
       },
     );

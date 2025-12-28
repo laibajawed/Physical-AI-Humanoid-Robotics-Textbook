@@ -14,7 +14,7 @@ from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 
@@ -49,6 +49,7 @@ from db import (
     close_engine,
 )
 from retrieve import get_collection_stats
+from auth import verify_jwt_token
 
 
 # =============================================================================
@@ -351,7 +352,11 @@ async def health_check() -> HealthResponse:
 # =============================================================================
 
 @app.post("/chat", response_model=ChatResponse, tags=["chat"])
-async def chat(request: Request, chat_request: ChatRequest) -> ChatResponse:
+async def chat(
+    request: Request, 
+    chat_request: ChatRequest,
+    current_user: dict = Depends(verify_jwt_token),
+) -> ChatResponse:
     """
     Ask a question about the Physical AI & Robotics textbook.
 
@@ -540,7 +545,11 @@ async def chat(request: Request, chat_request: ChatRequest) -> ChatResponse:
 # =============================================================================
 
 @app.post("/chat/stream", tags=["chat"])
-async def chat_stream(request: Request, chat_request: ChatRequest):
+async def chat_stream(
+    request: Request, 
+    chat_request: ChatRequest,
+    current_user: dict = Depends(verify_jwt_token),
+):
     """
     Stream answer generation via Server-Sent Events.
 
@@ -626,6 +635,7 @@ async def get_history(
     request: Request,
     session_id: UUID,
     limit: int = 50,
+    current_user: dict = Depends(verify_jwt_token),
 ) -> ConversationHistoryResponse:
     """
     Get conversation history for a session.
