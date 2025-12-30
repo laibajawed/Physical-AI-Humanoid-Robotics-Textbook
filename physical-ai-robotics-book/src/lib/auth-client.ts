@@ -8,9 +8,16 @@
 import { createAuthClient } from "better-auth/react";
 import { jwtClient } from "better-auth/client/plugins";
 
+// Determine if we are running in a production browser context
+const isProduction = typeof window !== "undefined" &&
+  (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1");
+
 // Get auth server URL
-// Points to the standalone Better Auth service on Railway
-const AUTH_SERVICE_URL = "https://better-auth-service-production-e374.up.railway.app";
+// Locally, points to the Hono dev server on 3001
+// In production, points to the standalone Railway service
+const AUTH_SERVICE_URL = isProduction
+  ? "https://better-auth-service-production-e374.up.railway.app"
+  : "http://localhost:3001";
 
 // Create the auth client with JWT plugin for token access
 export const authClient = createAuthClient({

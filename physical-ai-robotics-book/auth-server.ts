@@ -38,7 +38,7 @@ async function startServer() {
   const { serve } = await import("@hono/node-server");
   const { Hono } = await import("hono");
   const { cors } = await import("hono/cors");
-  const { auth } = await import("./src/lib/auth");
+  const { auth } = await import("./src/lib/auth.mts");
 
   const app = new Hono();
 
@@ -52,6 +52,15 @@ async function startServer() {
   app.on(["POST", "GET"], "/api/auth/*", (c) => {
     return auth.handler(c.req.raw);
   });
+
+  // Root redirect/status
+  app.get("/", (c) => c.json({
+    message: "Better Auth development server",
+    endpoints: {
+      health: "/health",
+      auth: "/api/auth/*"
+    }
+  }));
 
   // Health check
   app.get("/health", (c) => c.json({ status: "ok" }));

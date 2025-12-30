@@ -73,9 +73,14 @@ export const auth = betterAuth({
 
   // Trusted origins for CORS
   trustedOrigins: [
+    // Local development origins
     "http://localhost:3000",
     "http://localhost:5173",
-    process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    // The auth server itself
+    process.env.BETTER_AUTH_URL || "http://localhost:3001",
+    // The Vercel frontend (production + preview URLs)
+    "https://hackathon-i-physical-ai-humanoid-ro-dun.vercel.app",
   ].filter(Boolean),
 });
 
